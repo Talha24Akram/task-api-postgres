@@ -71,3 +71,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     first_error = exc.errors()[0]
     field = ".".join(str(p) for p in first_error["loc"] if p != "body")
     return JSONResponse(status_code=400, content={"error": f"{field}: {first_error['msg']}"})
+
+
+# --- read (SELECT) -------------------------------------------------------------------
+
+@app.get("/tasks")
+def list_tasks(done: Optional[bool] = None, search: Optional[str] = None):
+    return repository.list_tasks(done, search)
+
+
+@app.get("/tasks/{task_id}")
+def get_task(task_id: int):
+    task = repository.get_task(task_id)
+    if task is None:
+        raise not_found(task_id)
+    return task

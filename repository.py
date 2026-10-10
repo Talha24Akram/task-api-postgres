@@ -43,3 +43,23 @@ def init_db(retries: int = 30) -> None:
             with conn.cursor() as cur:
                 cur.executemany("INSERT INTO tasks (title, done) VALUES (%s, %s)", SEED_TASKS)
     conn.close()
+
+
+def list_tasks(done=None, search=None) -> list[dict]:
+    sql, params, clauses = f"SELECT {COLUMNS} FROM tasks", [], []
+    if done is not None:
+        clauses.append("done = %s")
+        params.append(done)
+    if search:
+        clauses.append("title ILIKE %s")
+        params.append(f"%{search}%")
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY id"
+    with connect() as conn:
+        return conn.execute(sql, params).fetchall()
+
+
+def get_task(task_id: int):
+    with connect() as conn:
+        return conn.execute(f"SELECT {COLUMNS} FROM tasks WHERE id = %s", (task_id,)).fetchone()
