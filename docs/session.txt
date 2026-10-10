@@ -1,0 +1,38 @@
+$ docker compose up -d
+SERVICE   STATUS                    PORTS
+api       Up 1 second               
+db        Up 27 seconds (healthy)   127.0.0.1:5432->5432/tcp
+
+$ curl -i localhost:8000/health
+HTTP/1.1 200 OK
+date: Sat, 10 Oct 2026 18:23:30 GMT
+server: uvicorn
+content-length: 25
+content-type: application/json
+
+{"status":"ok","db":"ok"}
+
+$ curl -i localhost:8000/tasks/1
+HTTP/1.1 200 OK
+date: Sat, 10 Oct 2026 18:23:30 GMT
+server: uvicorn
+content-length: 40
+content-type: application/json
+
+{"id":1,"title":"Buy milk","done":false}
+
+$ docker compose exec db psql -U postgres tasks -c "\dt" -c "SELECT * FROM tasks"
+          List of tables
+ Schema | Name  | Type  |  Owner   
+--------+-------+-------+----------
+ public | tasks | table | postgres
+(1 row)
+
+ id |         title         | done 
+----+-----------------------+------
+  1 | Buy milk              | f
+  2 | Walk the dog          | f
+  3 | Write README          | t
+  4 | survives compose down | f
+(4 rows)
+

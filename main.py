@@ -56,7 +56,9 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    if not repository.ping():
+        return JSONResponse(status_code=503, content={"status": "degraded", "db": "down"})
+    return {"status": "ok", "db": "ok"}
 
 
 # --- error handling (same JSON shape as before) ------------------------------------

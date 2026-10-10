@@ -20,6 +20,16 @@ def connect():
     return psycopg.connect(database_url(), row_factory=dict_row)
 
 
+def ping() -> bool:
+    """True if the database answers SELECT 1."""
+    try:
+        with connect() as conn:
+            conn.execute("SELECT 1")
+        return True
+    except psycopg.Error:
+        return False
+
+
 def init_db(retries: int = 30) -> None:
     """Create the tasks table if missing; seed three rows only when it is empty.
 
