@@ -63,3 +63,25 @@ def list_tasks(done=None, search=None) -> list[dict]:
 def get_task(task_id: int):
     with connect() as conn:
         return conn.execute(f"SELECT {COLUMNS} FROM tasks WHERE id = %s", (task_id,)).fetchone()
+
+
+def create_task(title: str) -> dict:
+    with connect() as conn:
+        return conn.execute(
+            f"INSERT INTO tasks (title, done) VALUES (%s, %s) RETURNING {COLUMNS}", (title, False)
+        ).fetchone()
+
+
+def update_task(task_id: int, title=None, done=None):
+    """Partial update: fields left as None keep their current value. Returns the row or None."""
+    with connect() as conn:
+        return conn.execute(
+            "UPDATE tasks SET title = COALESCE(%s, title), done = COALESCE(%s, done) "
+            f"WHERE id = %s RETURNING {COLUMNS}",
+            (title, done, task_id),
+        ).fetchone()
+
+
+def delete_task(task_id: int) -> bool:
+    with connect() as conn:
+        return conn.execute("DELETE FROM tasks WHERE id = %s", (task_id,)).rowcount > 0

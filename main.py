@@ -86,3 +86,26 @@ def get_task(task_id: int):
     if task is None:
         raise not_found(task_id)
     return task
+
+
+# --- create, update, delete (INSERT / UPDATE / DELETE) ----------------------------------
+
+@app.post("/tasks", status_code=201)
+def create_task(payload: TaskCreate):
+    return repository.create_task(payload.title)
+
+
+@app.put("/tasks/{task_id}")
+def update_task(task_id: int, payload: TaskUpdate):
+    if repository.get_task(task_id) is None:
+        raise not_found(task_id)
+    if payload.title is None and payload.done is None:
+        raise HTTPException(status_code=400, detail="Provide at least title or done")
+    return repository.update_task(task_id, payload.title, payload.done)
+
+
+@app.delete("/tasks/{task_id}", status_code=204)
+def delete_task(task_id: int):
+    if not repository.delete_task(task_id):
+        raise not_found(task_id)
+    return None
